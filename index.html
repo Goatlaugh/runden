@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Runden" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Runden 1.9</title>
+  <title>Runden 1.10</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="icon" href="icon-192.png" />
@@ -348,8 +348,8 @@
     .mode-btns { display: flex; gap: 8px; margin-bottom: 12px; }
     .mode-btn { flex: 1; padding: 10px; border: 2px solid var(--gray-200); border-radius: var(--radius-sm); background: white; font-weight: 600; font-size: 0.85rem; cursor: pointer; text-align: center; }
     .mode-btn.active { border-color: var(--green-600); background: var(--green-50); color: var(--green-900); }
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: flex-end; justify-content: center; z-index: 200; padding: 16px; }
-    .modal { background: white; border-radius: var(--radius) var(--radius) 0 0; width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto; padding: 24px; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 16px; }
+    .modal { background: white; border-radius: var(--radius); width: 100%; max-width: 420px; max-height: 80vh; overflow-y: auto; padding: 24px; }
     .hof-entry { padding: 12px; border-bottom: 1px solid var(--gray-100); }
     .hof-entry:last-child { border-bottom: none; }
     .lunch-banner { background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; text-align: center; border: 2px solid var(--gold); }
@@ -478,7 +478,14 @@
     .board-day-h { display: flex; justify-content: space-between; gap: 8px; font-size: 0.92rem; margin-bottom: 4px; }
     .board-day-h span { color: rgba(247,244,238,0.55); }
     .board-day-line { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; font-size: 0.95rem; }
-  </style>
+  
+    .media-featured { position: relative; border-radius: 16px; overflow: hidden; margin-bottom: 16px; background: #111; }
+    .media-featured img { width: 100%; height: 220px; object-fit: cover; display: block; }
+    .media-thumbs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; }
+    .media-thumbs img { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; flex-shrink: 0; }
+    .media-upload-fab { position: fixed; right: 16px; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); width: 56px; height: 56px; border-radius: 50%; background: var(--green-800); color: white; border: none; font-size: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 50; }
+
+</style>
 </head>
 <body>
   <header class="app-header">
@@ -552,7 +559,7 @@
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
       <div id="phone-role"></div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.9</p>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.10</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -5700,9 +5707,15 @@ function renderMedia() {
       const photos = d.photos || [];
       photos.forEach(p => allPhotos.push(p));
       const inputId = 'photo-' + album.year + '-' + d.dayNumber;
-      return '<div id="media-day-' + d.dayNumber + '" style="margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--gray-100);"><div class="flex justify-between items-center"><strong>Dag ' + d.dayNumber + (d.date ? ' · ' + formatDate(d.date) : '') + '</strong><button type="button" class="btn btn-sm btn-primary" onclick="document.getElementById(\'' + inputId + '\').click()">Legg til bilde</button></div><input id="' + inputId + '" class="file-input" type="file" accept="image/*" onchange="onDayPhotoPicked(' + htmlArg(album.year) + ',' + htmlArg(album.sted) + ',' + d.dayNumber + ', this)" /><p id="photo-status-' + d.dayNumber + '" class="text-muted mt-2" style="font-size:0.85rem;"></p>' +
-        (photos.length ? '<div class="photo-grid">' + photos.map((photo, index) => photoHtml(photo, album.year, album.sted, d.dayNumber, index)).join('') + '</div>' : '<p class="text-muted mt-2" style="font-size:0.85rem;">Ingen bilder ennå.</p>') + '</div>';
-    }).join('') + '</div>';
+      const featured = photos[0] ? photoHtml(photos[0], album.year, album.sted, d.dayNumber, 0) : '';
+      const thumbs = photos.slice(1).map((photo, index) => photoHtml(photo, album.year, album.sted, d.dayNumber, index + 1)).join('');
+      return '<div id="media-day-' + d.dayNumber + '" style="margin-bottom:24px;"><div class="flex justify-between items-center mb-2"><strong>Dag ' + d.dayNumber + (d.date ? ' · ' + formatDate(d.date) : '') + '</strong></div>' +
+        '<div class="media-featured" onclick="openPhotoViewer(' + album.year + ',' + d.dayNumber + ',0)">' + (featured || '<div style="height:180px;display:flex;align-items:center;justify-content:center;color:#999;">Ingen bilder ennå</div>') + '</div>' +
+        (thumbs ? '<div class="media-thumbs">' + thumbs + '</div>' : '') +
+        '<input id="' + inputId + '" class="file-input" type="file" accept="image/*" onchange="onDayPhotoPicked(' + htmlArg(album.year) + ',' + htmlArg(album.sted) + ',' + d.dayNumber + ', this)" />' +
+        '<p id="photo-status-' + d.dayNumber + '" class="text-muted mt-2" style="font-size:0.85rem;"></p></div>';
+    }).join('') + '</div>' +
+    '<button type="button" class="media-upload-fab" onclick="document.querySelector(\'input[type=file]\').click()">+</button>';
   refreshPhotoUrls(allPhotos);
 }
 

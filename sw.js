@@ -1,4 +1,4 @@
-const CACHE = 'runden-v1.9';
+const CACHE = 'runden-v1.10';
 const FILES = [
   './',
   './index.html',
