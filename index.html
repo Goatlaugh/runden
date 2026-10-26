@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Runden" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Runden 1.7</title>
+  <title>Runden 1.8</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="icon" href="icon-192.png" />
@@ -486,7 +486,7 @@
       <img class="logo-icon-img" src="icon-192.png" alt="" />
       <div class="logo-text">
         <h1>Runden</h1>
-        <span>Ett år som mester. Ett år med skryterett.</span>
+        
       </div>
     </div>
   </header>
@@ -552,7 +552,7 @@
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
       <div id="phone-role"></div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.7</p>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.8</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -1435,7 +1435,7 @@ function liveCoverHtml(show) {
     const speed = show.seconds ? (' style="animation-duration:' + show.seconds + 's"') : '';
     return '<div class="live-story' + (show.scroll ? ' scroll' : '') + '"><div class="k">AKKURAT NÅ</div><p' + speed + '>' + liveEsc(show.text) + '</p></div>';
   }
-  if (show.type === 'champion') return '<div class="live-cover"><div class="k">RUNDEN ' + liveEsc(String(show.year || '')) + '</div><h2 class="live-gold">' + liveEsc(show.name || '') + '</h2><div class="sub">Familiemajormester' + (show.margin ? (' · ' + show.margin + ' poeng') : '') + '</div></div>';
+  if (show.type === 'champion') return '<div class="live-cover"><div class="k">RUNDEN ' + liveEsc(String(show.year || '')) + '</div><h2 class="live-gold">' + liveEsc(show.name || '') + '</h2><div class="sub">Vinner' + (show.margin ? (' · ' + show.margin + ' poeng') : '') + '</div></div>';
   if (show.type === 'season') return liveSeasonCover(show);
   return '';
 }
@@ -2232,7 +2232,7 @@ function showModal(html) {
 const CHARTER = [
   { title: 'Formål og verdier', body: 'Runden er familiens årlige golfmesterskap. Formålet er å samle familien gjennom golf, skape tradisjoner og bygge historier som varer. Grunnprinsipp: Familie først, golf deretter. Verdimotto: Konkurrer hardt. Vinn ærlig. Tap verdig. Husk at familien kommer først. Kjerneverdier: Fair Play, respekt, sportsånd, samhold, tradisjon og vennskapelig rivalisering.' },
   { title: 'Deltakelse', body: 'Åpent for familiemedlemmer, ektefeller eller samboere og inviterte gjester godkjent av turneringskomiteen. Handicap ved turneringsstart gjelder hele mesterskapet. Midlertidig handicap kan settes av komiteen. Usportslig opptreden, juks eller feilrapportering kan gi advarsel, poengtrekk eller diskvalifikasjon.' },
-  { title: 'Turneringens struktur', body: 'Minimum fire konkurransedager. Finalerunden er alltid siste dag. Kun én Familiemajormester per år. Krav: minst én individuell konkurranse, minst én lagkonkurranse, og finalerunden. Mesteren kåres av summen av Runden-poeng, ikke av samlet golfscore.' },
+  { title: 'Turneringens struktur', body: 'Minimum fire konkurransedager. Finalerunden er alltid siste dag. Kun én Vinner per år. Krav: minst én individuell konkurranse, minst én lagkonkurranse, og finalerunden. Mesteren kåres av summen av Runden-poeng, ikke av samlet golfscore.' },
   { title: 'Spilleformater', body: 'Individuell Stableford: individuell konkurranse med fullt handicap. Høyest Stableford-score vinner dagen. Ryder Cup Fourball: lag, beste netto per hull, matchplay. Runden Akkumulert Scramble Matchplay: scramble med overføring av hullpoeng ved delte hull. Ryder Cup Singler: individuell matchplay én mot én, satt opp etter sammenlagtstilling. Finalerunden: individuell Stableford med doble poeng. Lederflight, topp 3, spiller sist.' },
   { title: 'Poengsystem', body: 'Førsteplass får like mange poeng som antall deltakere. Sisteplass får 1 poeng. Finalerunden dobler alle poeng. Ved seks deltakere i matchplay er uavgjort snittet av seier og tap.', table: [['Plass', 'Poeng'], ['1', '6'], ['2', '5'], ['3', '4'], ['4', '3'], ['5', '2'], ['6', '1']], table2: [['Resultat', 'Poeng'], ['Seier', '6'], ['Tap', '3'], ['Uavgjort', '4,5']] },
   { title: 'Tiebreak', body: 'Stableford: lavest handicap rangeres først. Er det fortsatt likt, deles plassen og poengene fordeles likt. Matchplay: uavgjort, ingen ekstra hull. Sammenlagt: 1) best plassering i finalerunden, 2) flest individuelle seire, 3) lavest handicap, 4) delt seier.' },
@@ -2412,7 +2412,7 @@ function renderHome() {
   const el = document.getElementById('home-stage');
   if (!el) return;
   const photo = '<div class="home-photo"><img class="home-banner-logo" src="icon-192.png" alt="" /></div>';
-  const motto = '<h1 class="home-motto">Ett år som mester.<br>Ett år med skryterett.</h1>';
+  const motto = '';
   if (!state.current) {
     const champs = state.history.length
       ? '<div class="home-champs"><div class="home-kicker">Siste mestere</div>' + state.history.slice(-3).reverse().map(function (h) {
@@ -4140,7 +4140,7 @@ function liveDayHtml(t) {
   } else if (day.format === 'singles') {
     body = (day.matches || []).map(function (m) { return '<div style="padding:6px 0;">' + m.p1 + ' mot ' + m.p2 + '<div class="text-muted">' + matchRun(day, { teamA: [m.p1], teamB: [m.p2] }).text + '</div></div>'; }).join('');
   }
-  return '<div class="card"><h3 class="card-title">I dag så langt</h3><p class="text-muted mb-2">Familiemajor-poengene låses når runden avsluttes.</p>' + body + '</div>';
+  return '<div class="card"><h3 class="card-title">I dag så langt</h3><p class="text-muted mb-2">Poengene låses når runden avsluttes.</p>' + body + '</div>';
 }
 function cardFeats(t) {
   const feats = [];
@@ -5417,7 +5417,7 @@ function finishTournament() {
   });
   state.current = null;
   saveState();
-  toast('🏆 ' + winners.join(' & ') + ' er Familiemajormester!');
+  toast('🏆 ' + winners.join(' & ') + ' er Vinner!');
   navigate('history');
 }
 
