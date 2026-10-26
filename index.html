@@ -480,7 +480,7 @@
 
   <div class="container">
     <div id="cloud-panel" class="card hidden">
-      <h2 class="card-title">Familiekode</h2>
+      <h2 class="card-title">Runde kode</h2>
       <p class="text-muted mb-3" id="cloud-status"></p>
       <div class="form-group"><label>Kode</label><input type="password" id="cloud-code" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitCloudGate()" /></div>
       <div class="form-group" id="cloud-code-2-wrap"><label>Gjenta koden</label><input type="password" id="cloud-code-2" autocomplete="new-password" onkeydown="if(event.key==='Enter')submitCloudGate()" /></div>
@@ -570,7 +570,7 @@
       <div class="menu-list">
         <button type="button" class="menu-row" onclick="exportData()">Eksporter data<span class="chev">›</span></button>
         <button type="button" class="menu-row" onclick="document.getElementById('import-file').click()">Importer data<span class="chev">›</span></button>
-        <button type="button" class="menu-row" onclick="forgetCloudCode()">Bytt familiekode<span class="chev">›</span></button>
+        <button type="button" class="menu-row" onclick="forgetCloudCode()">Bytt Runde kode<span class="chev">›</span></button>
       </div>
       <input type="file" id="import-file" accept=".json" class="hidden" onchange="importData(event)" />
       <div class="section-label">GOOGLE FOTO</div>
@@ -1912,7 +1912,7 @@ function showCloudGate(mode) {
   panel.dataset.mode = mode;
   document.getElementById('cloud-status').textContent = mode === 'create'
     ? 'Velg en kode hele familien skal bruke. Minst 4 tegn. Samme kode skrives inn på alle telefoner.'
-    : 'Skriv inn familiekoden for å hente turneringen.';
+    : 'Skriv inn Runde koden for å hente turneringen.';
   document.getElementById('cloud-code-2-wrap').classList.toggle('hidden', mode !== 'create');
   document.getElementById('cloud-code').value = '';
   document.getElementById('cloud-code-2').value = '';
@@ -5459,7 +5459,7 @@ async function loadGoogleStatus() {
   const family = localStorage.getItem(CODE_KEY);
   if (!el) return;
   if (!family || !cloudOn) {
-    el.textContent = 'Koble til familiekoden først.';
+    el.textContent = 'Koble til Runde koden først.';
     return;
   }
   try {
@@ -5478,7 +5478,7 @@ async function saveGoogleApp() {
   const family = localStorage.getItem(CODE_KEY);
   const id = document.getElementById('google-client-id').value.trim();
   const secret = document.getElementById('google-client-secret').value.trim();
-  if (!family) { toast('Familiekode mangler'); return; }
+  if (!family) { toast('Runde kode mangler'); return; }
   try {
     await cloudRpc('set_google_app', { p_password: family, p_client_id: id, p_client_secret: secret });
     document.getElementById('google-client-secret').value = '';
