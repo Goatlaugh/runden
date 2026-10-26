@@ -1911,7 +1911,7 @@ function showCloudGate(mode) {
   panel.classList.remove('hidden');
   panel.dataset.mode = mode;
   document.getElementById('cloud-status').textContent = mode === 'create'
-    ? 'Velg en kode hele familien skal bruke. Minst 4 tegn. Samme kode skrives inn på alle telefoner.'
+    ? 'Velg en kode spillerne skal bruke. Minst 4 tegn. Samme kode skrives inn på alle telefoner.'
     : 'Skriv inn Runde koden for å hente turneringen.';
   document.getElementById('cloud-code-2-wrap').classList.toggle('hidden', mode !== 'create');
   document.getElementById('cloud-code').value = '';
