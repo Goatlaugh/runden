@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Runden" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Runden 1.5</title>
+  <title>Runden 1.7</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="icon" href="icon-192.png" />
@@ -230,8 +230,21 @@
     .btn-danger { background: white; color: #b42318; border: 1.5px solid #e8b4b0; }
     .logo-text h1 { font-size: 1.25rem; margin: 0; }
     .logo-text span { font-size: 0.7rem; opacity: 0.85; font-family: 'Inter', sans-serif; font-weight: 500; }
-    .bottom-nav { position: fixed !important; left: 0; right: 0; bottom: 0 !important; transform: translateZ(0); z-index: 9999; background: #fff; border-top: 1px solid var(--gray-200); display: flex; justify-content: space-around; padding: 10px 0 calc(12px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -4px 20px rgba(0,0,0,0.05); }
-    .bottom-nav::after { content: ""; position: absolute; left: 0; right: 0; bottom: -80px; height: 80px; background: white; z-index: -1; pointer-events: none; }
+    .bottom-nav { 
+  position: fixed; 
+  left: 0; 
+  right: 0; 
+  bottom: 0; 
+  z-index: 9999; 
+  background: #fff; 
+  border-top: 1px solid var(--gray-200); 
+  display: flex; 
+  justify-content: space-around; 
+  padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px)); 
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.08); 
+  min-height: 60px;
+}
+    
     .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 2px; background: none; border: none; color: #6b7280; font-size: 0.68rem; font-weight: 500; cursor: pointer; }
     .nav-btn.active { color: var(--green-800); }
     .nav-btn[data-page="leaderboard"] svg { stroke: none; fill: #c0c0c0; }
@@ -522,14 +535,6 @@
     <div id="page-history-detail" class="page"><div id="history-detail-content"></div></div>
     <div id="page-hof" class="page"><div id="hof-content"></div></div>
     <div id="page-media" class="page"><div id="media-content"></div></div>
-      
-      </div>
-    </div>
-      
-      
-        <div class="charter-content" id="charter-full-body"></div>
-      </div>
-    </div>
     <div id="page-more" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><h1>Mer</h1></div>
       <div class="menu-list">
@@ -547,7 +552,7 @@
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
       <div id="phone-role"></div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.5</p>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.7</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -2167,7 +2172,7 @@ function navigate(pageId) {
   if (pageId === 'groups') renderGroupsMenu();
   if (pageId === 'hof') renderHoF();
   if (pageId === 'media') renderMedia();
-  if (pageId === 'charter')if (pageId === 'settings') renderAdminStatus();
+  if (pageId === 'settings') renderAdminStatus();
   if (pageId === 'admin') loadGoogleStatus();
   if (pageId === 'pin') paintPin();
   if (pageId === 'card-setup') renderCardSetup();
