@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Runden" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Runden 1.36</title>
+  <title>Runden 1.37</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="icon" href="icon-192.png" />
@@ -569,7 +569,7 @@
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
       <div id="phone-role"></div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.36</p>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.37</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -5800,6 +5800,12 @@ function openPhotoViewer(year, dayNumber, startIndex) {
           if (di >= 0) state.deletedPhotos.splice(di, 1);
         }
         saveState();
+        const code = localStorage.getItem(CODE_KEY);
+        if (code) {
+          const data = JSON.parse(JSON.stringify(state));
+          delete data.courseBook;
+          cloudRpc('save_state', { p_password: code, p_data: data }).catch(function(){});
+        }
         renderMedia();
       }
     };
