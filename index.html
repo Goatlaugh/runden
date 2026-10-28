@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Runden" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Runden 1.28</title>
+  <title>Runden 1.29</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="icon" href="icon-192.png" />
@@ -569,7 +569,7 @@
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
       <div id="phone-role"></div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.28</p>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.29</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -5709,30 +5709,34 @@ function openPhotoViewer(year, dayNumber, startIndex) {
   const album = mediaAlbums()[mediaFocus || 0];
   const day = findDay(year, album && album.sted, dayNumber);
   if (!day || !day.photos || !day.photos.length) { toast('Ingen bilder'); return; }
-  const photos = day.photos;
+  let photos = day.photos.slice();
   let idx = startIndex || 0;
   const overlay = document.createElement('div');
   overlay.id = 'photo-viewer';
-  overlay.style.cssText = 'position:fixed;inset:0;background:#000;z-index:3000;display:flex;align-items:center;justify-content:center;overflow:hidden;';
-  overlay.innerHTML = '<button style="position:absolute;top:16px;left:16px;background:none;border:none;color:white;font-size:32px;z-index:10;" onclick="document.getElementById(\'photo-viewer\').remove()">×</button>' +
+  overlay.style.cssText = 'position:fixed;inset:0;background:#000;z-index:3000;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML = '<button id="viewer-close" style="position:absolute;top:16px;left:16px;background:none;border:none;color:white;font-size:32px;z-index:10;">×</button>' +
     '<button id="viewer-menu" style="position:absolute;top:16px;right:16px;background:none;border:none;color:white;font-size:28px;z-index:10;">⋮</button>' +
-    '<img id="viewer-img" style="max-width:100%;max-height:90vh;object-fit:contain;transition:transform 0.2s;" />' +
+    '<img id="viewer-img" style="max-width:100%;max-height:90vh;object-fit:contain;" />' +
     '<div style="position:absolute;bottom:100px;display:flex;gap:16px;">' +
-    '<button onclick="viewerPrev()" style="background:rgba(255,255,255,0.25);border:none;color:white;padding:14px 22px;border-radius:10px;font-size:18px;">←</button>' +
-    '<button onclick="viewerNext()" style="background:rgba(255,255,255,0.25);border:none;color:white;padding:14px 22px;border-radius:10px;font-size:18px;">→</button></div>' +
+    '<button id="viewer-prev" style="background:rgba(255,255,255,0.25);border:none;color:white;padding:14px 22px;border-radius:10px;font-size:18px;">←</button>' +
+    '<button id="viewer-next" style="background:rgba(255,255,255,0.25);border:none;color:white;padding:14px 22px;border-radius:10px;font-size:18px;">→</button></div>' +
     '<div id="viewer-menu-pop" style="display:none;position:absolute;top:56px;right:16px;background:#222;border-radius:10px;padding:8px 0;z-index:20;">' +
-    '<button onclick="viewerDownload()" style="display:block;width:100%;background:none;border:none;color:white;padding:12px 20px;text-align:left;">Last ned</button>' +
-    '<button onclick="viewerDelete()" style="display:block;width:100%;background:none;border:none;color:#f66;padding:12px 20px;text-align:left;">Slett</button></div>';
+    '<button id="viewer-download" style="display:block;width:100%;background:none;border:none;color:white;padding:12px 20px;text-align:left;">Last ned</button>' +
+    '<button id="viewer-delete" style="display:block;width:100%;background:none;border:none;color:#f66;padding:12px 20px;text-align:left;">Slett</button></div>';
   document.body.appendChild(overlay);
   const img = document.getElementById('viewer-img');
   function show() {
     const p = photos[idx];
     if (img && p && p.baseUrl) img.src = p.baseUrl + '=w1600';
-    img.style.transform = 'translateX(0)';
   }
-  window.viewerPrev = function() { idx = (idx - 1 + photos.length) % photos.length; show(); };
-  window.viewerNext = function() { idx = (idx + 1) % photos.length; show(); };
-  window.viewerDownload = function() {
+  document.getElementById('viewer-close').onclick = function() { overlay.remove(); };
+  document.getElementById('viewer-prev').onclick = function() { idx = (idx - 1 + photos.length) % photos.length; show(); };
+  document.getElementById('viewer-next').onclick = function() { idx = (idx + 1) % photos.length; show(); };
+  document.getElementById('viewer-menu').onclick = function() {
+    const pop = document.getElementById('viewer-menu-pop');
+    pop.style.display = pop.style.display === 'none' ? 'block' : 'none';
+  };
+  document.getElementById('viewer-download').onclick = function() {
     const p = photos[idx];
     if (p && p.baseUrl) {
       const a = document.createElement('a');
@@ -5742,9 +5746,8 @@ function openPhotoViewer(year, dayNumber, startIndex) {
     }
     document.getElementById('viewer-menu-pop').style.display = 'none';
   };
-  window.viewerDelete = function() {
-    const pop = document.getElementById('viewer-menu-pop');
-    if (pop) pop.style.display = 'none';
+  document.getElementById('viewer-delete').onclick = function() {
+    document.getElementById('viewer-menu-pop').style.display = 'none';
     const currentDay = findDay(year, album && album.sted, dayNumber);
     if (!currentDay || !currentDay.photos || !currentDay.photos[idx]) { toast('Ingen bilde'); return; }
     const removed = currentDay.photos.splice(idx, 1)[0];
@@ -5756,38 +5759,24 @@ function openPhotoViewer(year, dayNumber, startIndex) {
       delete data.courseBook;
       cloudRpc('save_state', { p_password: code, p_data: data }).catch(function(){});
     }
-    // Close viewer immediately
-    document.getElementById('photo-viewer').remove();
+    overlay.remove();
     renderMedia();
     toast('Bildet er slettet');
-    // Undo
     const undo = document.createElement('div');
     undo.id = 'undo-toast';
     undo.style.cssText = 'position:fixed;bottom:120px;left:50%;transform:translateX(-50%);background:#333;color:white;padding:12px 20px;border-radius:8px;z-index:4000;';
-    undo.innerHTML = 'Slettet <button style="margin-left:12px;background:none;border:none;color:#4af;" onclick="document.getElementById(\'undo-toast\').remove();var d=findDay(' + year + ',\'' + (album && album.sted || '') + '\',' + dayNumber + ');if(d&&d.photos){d.photos.splice(' + idx + ',0,' + JSON.stringify(removed) + ');saveState();renderMedia();}">Angre</button>';
+    undo.innerHTML = 'Slettet <button style="margin-left:12px;background:none;border:none;color:#4af;" onclick="this.parentElement.remove();var d=findDay(' + year + ',\'' + (album && album.sted || '') + '\',' + dayNumber + ');if(d&&d.photos){d.photos.splice(' + idx + ',0,' + JSON.stringify(removed) + ');saveState();renderMedia();}">Angre</button>';
     document.body.appendChild(undo);
     setTimeout(function() { var u = document.getElementById('undo-toast'); if (u) u.remove(); }, 5000);
   };
-  document.getElementById('viewer-menu').onclick = function() {
-    const pop = document.getElementById('viewer-menu-pop');
-    pop.style.display = pop.style.display === 'none' ? 'block' : 'none';
-  };
-  // Swipe with visual feedback
-  let startX = 0, dragging = false;
-  overlay.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; dragging = true; }, {passive: true});
-  overlay.addEventListener('touchmove', function(e) {
-    if (!dragging) return;
-    const dx = e.touches[0].clientX - startX;
-    img.style.transform = 'translateX(' + dx + 'px)';
-  }, {passive: true});
+  // Swipe
+  let startX = 0;
+  overlay.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; }, {passive: true});
   overlay.addEventListener('touchend', function(e) {
-    if (!dragging) return;
-    dragging = false;
     const dx = e.changedTouches[0].clientX - startX;
-    img.style.transform = 'translateX(0)';
-    if (Math.abs(dx) > 60) {
-      if (dx < 0) window.viewerNext();
-      else window.viewerPrev();
+    if (Math.abs(dx) > 50) {
+      if (dx < 0) document.getElementById('viewer-next').click();
+      else document.getElementById('viewer-prev').click();
     }
   }, {passive: true});
   show();
