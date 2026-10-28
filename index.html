@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Runden" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Runden 1.34</title>
+  <title>Runden 1.35</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="icon" href="icon-192.png" />
@@ -569,7 +569,7 @@
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
       <div id="phone-role"></div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.34</p>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.35</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -5797,12 +5797,20 @@ function openPhotoViewer(year, dayNumber, startIndex) {
     };
     setTimeout(function() { var u = document.getElementById('undo-toast'); if (u) u.remove(); }, 5000);
   };
-  // Swipe
-  let startX = 0;
-  overlay.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; }, {passive: true});
+  // Swipe with visual feedback
+  let startX = 0, dragging = false;
+  overlay.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; dragging = true; }, {passive: true});
+  overlay.addEventListener('touchmove', function(e) {
+    if (!dragging) return;
+    const dx = e.touches[0].clientX - startX;
+    img.style.transform = 'translateX(' + dx + 'px)';
+  }, {passive: true});
   overlay.addEventListener('touchend', function(e) {
+    if (!dragging) return;
+    dragging = false;
     const dx = e.changedTouches[0].clientX - startX;
-    if (Math.abs(dx) > 50) {
+    img.style.transform = 'translateX(0)';
+    if (Math.abs(dx) > 60) {
       if (dx < 0) document.getElementById('viewer-next').click();
       else document.getElementById('viewer-prev').click();
     }
@@ -5845,7 +5853,7 @@ function renderMedia() {
       return '<div id="media-day-' + d.dayNumber + '" style="margin-bottom:24px;"><div class="flex justify-between items-center mb-2"><strong>Dag ' + d.dayNumber + (d.date ? ' · ' + formatDate(d.date) : '') + ' · ' + photos.length + ' bilder</strong></div>' +
         '<div class="media-featured">' + (featured || '<div style="height:180px;display:flex;align-items:center;justify-content:center;color:#999;">Ingen bilder ennå</div>') + '</div>' +
         (photos.length ? '<div class="media-thumbs">' + thumbs + '</div>' : '') +
-        '<input id="' + inputId + '" class="file-input" type="file" accept="image/*" onchange="onDayPhotoPicked(' + htmlArg(album.year) + ',' + htmlArg(album.sted) + ',' + d.dayNumber + ', this)" />' +
+        '<input id="' + inputId + '" class="file-input" type="file" accept="image/*" multiple onchange="onDayPhotoPicked(' + htmlArg(album.year) + ',' + htmlArg(album.sted) + ',' + d.dayNumber + ', this)" />' +
         '<p id="photo-status-' + d.dayNumber + '" class="text-muted mt-2" style="font-size:0.85rem;"></p></div>';
     }).join('') + '</div>' +
     (selectedDay ? '<button type="button" class="media-upload-fab" onclick="document.querySelector(\'input[type=file]\').click()">+</button>' : '');
