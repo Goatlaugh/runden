@@ -1,4 +1,4 @@
-const CACHE = 'runden-v1.46';
+const CACHE = 'runden-v1.47';
 const FILES = [
   './',
   './index.html',
@@ -8,6 +8,8 @@ const FILES = [
   './apple-touch-icon.png',
   './manifest.webmanifest',
   './cast.html',
+  './logo-snurr.mp4',
+  './logo-transition.mp4',
 ];
 
 self.addEventListener('install', function (event) {
