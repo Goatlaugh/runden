@@ -1,4 +1,4 @@
-<!-- Runden 1.56 -->
+<!-- Runden 1.57 -->
 <!DOCTYPE html>
 <html lang="no">
 <head>
@@ -107,8 +107,10 @@
     .pokal video { width: 100%; height: 100%; object-fit: contain; display: block; }
     .pokal-sm { position: absolute; left: 50%; top: -18px; width: 120px; height: 120px; margin: 0 0 0 -60px; }
     .pokal-lg { width: 460px; height: 460px; }
-    .live-sting { position: fixed; inset: 0; z-index: 70; background: #071a10; display: flex; align-items: center; justify-content: center; }
-    .live-sting video { width: min(92vw, 92vh); height: min(92vw, 92vh); object-fit: contain; }
+    .live-sting { position: fixed; inset: 0; z-index: 70; background: #071a10; }
+    .live-sting video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .live-intro { position: fixed; inset: 0; z-index: 120; background: #071a10; }
+    .live-intro video { width: 100%; height: 100%; object-fit: cover; display: block; }
     .live-holecard { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
     .live-holecard .ring { width: min(52vh, 640px); aspect-ratio: 1; border: 2px solid rgba(228,197,106,0.55); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     .live-holecard .num { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(8rem, 18vh, 14rem); line-height: 0.8; color: #f7f4ee; }
@@ -123,7 +125,7 @@
   </style>
 </head>
 <body>
-  <div id="board"><div class="wait">FAMILIEMAJOREN</div></div>
+  <div id="board"><div class="wait">RUNDEN</div></div>
   <cast-media-player></cast-media-player>
   <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
   <script>

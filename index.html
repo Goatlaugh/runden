@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Runden" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Runden 1.56</title>
+  <title>Runden 1.57</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="icon" href="icon-192.png" />
@@ -578,7 +578,7 @@
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
       <div id="phone-role"></div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.56</p>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.57</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -789,6 +789,13 @@ let liveStingTimer = null;
 let liveCourseOpen = false;
 let liveCupSpin = false;
 let liveIdleTimer = null;
+let liveShowcaseActive = false;
+let liveShowSlides = [];
+let liveShowIndex = 0;
+let liveShowKey = '';
+let liveShowTimer = null;
+let liveOpeningUntil = 0;
+let liveOpeningTimer = null;
 let liveCastSession = null;
 let liveCastBeat = null;
 let liveCastSent = '';
@@ -1528,13 +1535,134 @@ function liveSeasonCover(show) {
   }).join('');
   return '<div class="live-cover"><div class="k">SAMMENLAGT</div><div class="live-table live-race" style="--n:' + after.length + '">' + rows + '</div></div>';
 }
+function liveOpeningHtml(bare) {
+  const skip = bare ? '' : '<button type="button" class="live-intro-skip" onclick="liveShowcaseNext()">Hopp over</button>';
+  return '<div class="live-intro"><video data-auto autoplay muted playsinline webkit-playsinline src="opening.mp4"></video>' + skip + '</div>';
+}
+function liveTransitionHtml() {
+  return '<div class="live-sting"><video data-auto autoplay muted playsinline webkit-playsinline src="logo-transition.mp4"></video></div>';
+}
+function liveShowcaseSlides(t, found) {
+  const slides = [
+    { type: 'intro', wait: 10200 },
+    { type: 'field', wait: 12000 }
+  ];
+  const prev = [];
+  (t.days || []).forEach(function (d, i) {
+    if (i >= found.index) return;
+    if (d.completed || liveDayPlayed(d)) prev.push(i);
+  });
+  if (prev.length) slides.push({ type: 'rounds', indexes: prev, wait: 14000 });
+  slides.push({ type: 'transition', wait: 8000 });
+  const history = (state.history || []).filter(function (h) { return h && (h.winner || h.sted || h.year); });
+  if (history.length) slides.push({ type: 'archive', wait: 12000 });
+  else if (prev.length) slides.push({ type: 'results', index: prev[prev.length - 1], wait: 12000 });
+  slides.push({ type: 'board', wait: 12000 });
+  return slides;
+}
+function liveStopShowcase() {
+  if (liveShowTimer) clearTimeout(liveShowTimer);
+  liveShowTimer = null;
+}
+function liveArmShowcase() {
+  if (liveShowTimer) return;
+  const slide = liveShowSlides[liveShowIndex] || { type: 'intro', wait: 10200 };
+  liveShowTimer = setTimeout(function () {
+    liveShowTimer = null;
+    if (!liveShowcaseActive) return;
+    if (currentPage !== 'live' && !liveCastSession) return;
+    liveShowIndex = (liveShowIndex + 1) % Math.max(1, liveShowSlides.length);
+    livePaintKey = '';
+    renderLive();
+  }, slide.wait || 10000);
+}
+function liveShowcaseNext() {
+  if (liveOpeningUntil && Date.now() < liveOpeningUntil && !liveShowcaseActive) {
+    liveOpeningUntil = 0;
+    if (liveOpeningTimer) { clearTimeout(liveOpeningTimer); liveOpeningTimer = null; }
+    livePaintKey = '';
+    liveCastSent = '';
+    paintLive();
+    return;
+  }
+  if (!liveShowcaseActive || !liveShowSlides.length) return;
+  liveStopShowcase();
+  liveShowIndex = (liveShowIndex + 1) % liveShowSlides.length;
+  livePaintKey = '';
+  renderLive();
+}
+function liveShowcaseFrame(bare) {
+  const t = liveModel.t;
+  const day = liveModel.found.day;
+  const slide = liveShowSlides[liveShowIndex] || { type: 'intro' };
+  if (slide.type === 'intro') return liveOpeningHtml(bare);
+  if (slide.type === 'transition') return liveTransitionHtml();
+  let body = '';
+  if (slide.type === 'field') {
+    body = '<div class="live-kicker"><span>RUNDEN</span><span>DAG ' + day.dayNumber + '</span></div>' + liveField(t, day);
+  } else if (slide.type === 'rounds') {
+    const lines = (slide.indexes || []).map(function (i) {
+      const d = t.days[i];
+      return '<div class="live-line"><span>' + d.dayNumber + '</span><b>' + liveEsc(formatShort(d.format)) + '</b><span>' + liveEsc(dayWinnerLine(t, d)) + '</span></div>';
+    }).join('');
+    body = '<div class="live-kicker"><span>RUNDEN</span><span>TIDLIGERE RUNDER</span></div><div class="live-rows" style="margin-top:28px">' + lines + '</div>';
+  } else if (slide.type === 'results') {
+    return '<div class="live-board live-bare">' + liveDayStill(t, t.days[slide.index]) + '</div>';
+  } else if (slide.type === 'archive') {
+    const lines = (state.history || []).slice().reverse().map(function (h) {
+      return '<div class="live-line"><span>' + liveEsc(String(h.year || '')) + '</span><b>' + liveEsc(h.winner || '') + '</b><span>' + liveEsc(h.sted || '') + '</span></div>';
+    }).join('');
+    body = '<div class="live-kicker"><span>RUNDEN</span><span>TIDLIGERE</span></div><div class="live-rows" style="margin-top:28px">' + lines + '</div>';
+  } else {
+    const rows = liveModel.season || [];
+    const lines = rows.map(function (s, i) {
+      const gold = i === 0 ? ' class="live-gold"' : '';
+      const gap = i === 0 || !rows[0] || s.total === rows[0].total ? '–' : ('−' + (rows[0].total - s.total));
+      return '<div class="live-line"><span>' + (i + 1) + '</span><b' + gold + '>' + liveEsc(s.name) + '</b><span>' + s.total + '</span><span class="live-gap">' + gap + '</span></div>';
+    }).join('');
+    body = '<div class="live-kicker"><span>RUNDEN</span><span>STILLING</span></div><div class="live-rows" style="margin-top:28px">' + (lines || '<div class="live-sub">Ingen poeng ennå</div>') + '</div>';
+  }
+  return '<div class="live-board live-bare">' + body + '</div>';
+}
+function liveFrameHtml(bare) {
+  if (liveOpeningUntil && Date.now() < liveOpeningUntil && !liveShowcaseActive) return liveOpeningHtml(bare);
+  if (liveShowcaseActive && liveModel && liveModel.found) return liveShowcaseFrame(bare);
+  if (!liveModel) return '';
+  return liveBoardHtml(liveModel, bare) + liveCoverHtml(liveShow);
+}
+function liveForceOpening() {
+  if (liveShowcaseActive && liveShowSlides.length) {
+    liveShowIndex = 0;
+    liveStopShowcase();
+    livePaintKey = '';
+    liveCastSent = '';
+    renderLive();
+    return;
+  }
+  liveOpeningUntil = Date.now() + 10200;
+  if (liveOpeningTimer) clearTimeout(liveOpeningTimer);
+  livePaintKey = '';
+  liveCastSent = '';
+  if (liveModel) paintLive();
+  else renderLive();
+  liveOpeningTimer = setTimeout(function () {
+    liveOpeningTimer = null;
+    liveOpeningUntil = 0;
+    livePaintKey = '';
+    liveCastSent = '';
+    if (currentPage === 'live' || liveCastSession) {
+      if (liveModel) paintLive();
+      else renderLive();
+    }
+  }, 10400);
+}
 function paintLive() {
   const el = document.getElementById('live-content');
   if (!el || !liveModel) return;
-  const key = liveModel.sig + '|' + (liveShow ? liveShow.id : '') + (liveSting ? '|sting' : '');
+  const key = (liveShowcaseActive ? 'show|' + liveShowIndex + '|' : '') + (liveOpeningUntil && Date.now() < liveOpeningUntil && !liveShowcaseActive ? 'open|' : '') + liveModel.sig + '|' + (liveShow ? liveShow.id : '') + (liveSting ? '|sting' : '');
   if (key === livePaintKey) return;
   livePaintKey = key;
-  el.innerHTML = liveBoardHtml(liveModel) + liveCoverHtml(liveShow);
+  el.innerHTML = liveFrameHtml(false);
   liveFitBars();
   el.querySelectorAll('video[data-auto]').forEach(function (v) {
     v.muted = true;
@@ -1595,6 +1723,7 @@ function liveArmScene() {
   liveSceneTimer = setTimeout(function () {
     liveSceneTimer = null;
     if (currentPage !== 'live') return;
+    if (liveShowcaseActive || (liveOpeningUntil && Date.now() < liveOpeningUntil)) { liveArmScene(); return; }
     if (liveShow || !liveModel || !liveModel.found || liveModel.found.frozen) { liveArmScene(); return; }
     liveScene = (liveScene + 1) % liveSceneCount(liveModel);
     liveBeat = (liveBeat + 1) % 4;
@@ -1670,7 +1799,6 @@ function liveArm() {
   liveStoryNext(40000);
   liveArmScene();
   liveWake(true);
-  livePlayIntro();
 }
 function liveStop() {
   liveStopIdle();
@@ -1689,8 +1817,16 @@ function liveStop() {
   liveHoldSeason = null;
   liveShow = null;
   liveQueue = [];
-  const intro = document.querySelector('.live-intro');
+  const intro = document.querySelector('body > .live-intro');
   if (intro) intro.remove();
+  if (liveCastSession && (liveShowcaseActive || (liveOpeningUntil && Date.now() < liveOpeningUntil))) {
+    liveWake(false);
+    return;
+  }
+  liveShowcaseActive = false;
+  liveStopShowcase();
+  if (liveOpeningTimer) { clearTimeout(liveOpeningTimer); liveOpeningTimer = null; }
+  liveOpeningUntil = 0;
   liveWake(false);
 }
 function liveWake(on) {
@@ -1732,8 +1868,8 @@ function castReceiverUrl() {
   return location.origin + base + 'cast.html';
 }
 function liveCastHtml() {
-  if (!liveModel) return '';
-  return liveBoardHtml(liveModel, true) + liveCoverHtml(liveShow);
+  if (!liveModel && !(liveOpeningUntil && Date.now() < liveOpeningUntil)) return '';
+  return liveFrameHtml(true);
 }
 function liveCastBeatStart() {
   if (liveCastBeat) clearInterval(liveCastBeat);
@@ -1769,7 +1905,7 @@ function liveInitCast() {
           liveCastSession = ctx.getCurrentSession();
           liveCastSent = '';
           liveCastBeatStart();
-          liveSendBoard();
+          liveForceOpening();
         } else if (ev.sessionState === cast.framework.SessionState.SESSION_ENDED) {
           liveCastSession = null;
           liveCastSent = '';
@@ -1789,7 +1925,7 @@ function liveCast() {
     liveCastSession = cast.framework.CastContext.getInstance().getCurrentSession();
     liveCastSent = '';
     liveCastBeatStart();
-    liveSendBoard();
+    liveForceOpening();
   }).catch(function () {});
 }
 function saveCastApp() {
@@ -1820,6 +1956,7 @@ function renderLive() {
   }
   const found = liveFound(t);
   if (!found) {
+    if (liveShowcaseActive) { liveShowcaseActive = false; liveStopShowcase(); }
     const slides = t ? liveIdleSlides(t) : [{ type: 'season' }];
     if (liveIdleIndex >= slides.length) liveIdleIndex = 0;
     const slide = slides[liveIdleIndex] || { type: 'season' };
@@ -1833,6 +1970,33 @@ function renderLive() {
   liveStopIdle();
   const marks = found ? liveMarks(t, found) : [];
   const season = t ? liveSeason(t, found, marks) : [];
+  if (!marks.length) {
+    liveShowcaseActive = true;
+    liveStopIdle();
+    if (liveSceneTimer) { clearTimeout(liveSceneTimer); liveSceneTimer = null; }
+    if (liveStoryTimer) { clearTimeout(liveStoryTimer); liveStoryTimer = null; }
+    if (liveTimer) { clearTimeout(liveTimer); liveTimer = null; }
+    liveShow = null;
+    liveQueue = [];
+    liveSting = false;
+    liveCourseOpen = false;
+    const showKey = 'show-' + found.index;
+    if (liveShowKey !== showKey) {
+      liveShowKey = showKey;
+      liveShowIndex = 0;
+      liveShowSlides = liveShowcaseSlides(t, found);
+      liveStopShowcase();
+    }
+    liveModel = { t: t, found: found, marks: marks, season: calculateStandings(t), story: '', ticker: '', slide: null, sig: 'show|' + found.index + '|' + liveShowIndex };
+    liveFresh = false;
+    paintLive();
+    liveArmShowcase();
+    return;
+  }
+  if (liveShowcaseActive) {
+    liveShowcaseActive = false;
+    liveStopShowcase();
+  }
   const story = found ? liveStory(t, found, marks) : '';
   const doneNames = (found.day.card && found.day.card.done) ? Object.keys(found.day.card.done).sort().join(',') : '';
   const first = liveFresh;
@@ -3061,10 +3225,15 @@ function toggleDayPublished(i) {
   const day = state.current && state.current.days[i];
   if (!day) return;
   day.published = !day.published;
-  if (day.published) day.shared = true;
+  if (day.published) {
+    day.shared = true;
+    liveShowKey = '';
+    liveShowIndex = 0;
+  }
   saveState();
   toast(day.published ? 'Dagen er publisert' : 'Dagen er avsluttet');
   renderTournament();
+  if (day.published && liveCastSession) renderLive();
 }
 function cardIsBlank(day) {
   if (!day.card) return true;
