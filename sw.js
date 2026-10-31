@@ -1,4 +1,4 @@
-const CACHE = 'runden-v1.55';
+const CACHE = 'runden-v1.56';
 const FILES = [
   './',
   './index.html',
@@ -10,6 +10,7 @@ const FILES = [
   './cast.html',
   './logo-mark.png',
   './opening.mp4',
+  './logo-snurr.mp4',
   './logo-transition.mp4',
 ];
 
