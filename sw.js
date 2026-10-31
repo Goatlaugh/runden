@@ -1,4 +1,4 @@
-const CACHE = 'runden-v1.54';
+const CACHE = 'runden-v1.55';
 const FILES = [
   './',
   './index.html',
@@ -8,7 +8,8 @@ const FILES = [
   './apple-touch-icon.png',
   './manifest.webmanifest',
   './cast.html',
-  './logo-snurr.mp4',
+  './logo-mark.png',
+  './opening.mp4',
   './logo-transition.mp4',
 ];
 

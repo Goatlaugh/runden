@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Runden" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Runden 1.54</title>
+  <title>Runden 1.55</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="icon" href="icon-192.png" />
@@ -105,12 +105,18 @@
     .live-where { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; width: 100%; padding: 14px 0; border-top: 1px solid rgba(255,255,255,0.12); }
     .live-where-h { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.4rem, 3vw, 2rem); }
     .live-person { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.5rem, 4vw, 2.3rem); padding: 8px 0; }
-    .pokal { position: relative; width: 240px; height: 240px; margin: 0 auto 6px; background: transparent; display: none; }
-    .pokal video { width: 100%; height: 100%; object-fit: contain; display: block; background: transparent; }
+    .pokal { position: relative; width: 240px; height: 240px; margin: 0 auto 6px; background: transparent; }
+    .pokal img, .pokal video { width: 100%; height: 100%; object-fit: contain; display: block; background: transparent; }
+    .pokal.spin img { animation: pokal-spin 1.4s ease-in-out; }
+    @keyframes pokal-spin { from { transform: rotateY(80deg) scale(0.82); opacity: 0.2; } to { transform: none; opacity: 1; } }
     .pokal-sm { position: absolute; left: 50%; top: -28px; width: 96px; height: 96px; margin: 0 0 0 -48px; }
-    .pokal-lg { width: 360px; height: 360px; }
-    .live-sting { position: fixed; inset: 0; z-index: 70; background: #071a10; display: flex; align-items: center; justify-content: center; }
-    .live-sting video { width: min(100vw, 100vh); height: min(100vw, 100vh); object-fit: contain; }
+    .pokal-lg { width: min(360px, 78vw); height: min(360px, 78vw); }
+    .live-sting { position: fixed; inset: 0; z-index: 70; background: #071a10; }
+    .live-sting video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .live-intro { position: fixed; inset: 0; z-index: 120; background: #071a10; }
+    .live-intro video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .live-intro-skip { position: absolute; right: 16px; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); z-index: 2; background: rgba(7,26,16,0.45); color: #f7f4ee; border: 1px solid rgba(247,244,238,0.5); border-radius: 999px; padding: 8px 14px; font: 600 0.85rem Inter, sans-serif; }
+    .live-intro.out { opacity: 0; transition: opacity .4s ease; pointer-events: none; }
     .live-holecard { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
     .live-holecard .ring { width: min(78vw, 520px); aspect-ratio: 1; border: 2px solid rgba(228,197,106,0.55); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     .live-holecard .num { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(7rem, 22vw, 11rem); line-height: 0.8; color: #f7f4ee; }
@@ -497,9 +503,6 @@
 
 
 .live-dots i.done { background: #4a7c59; }
-.live-dots i.active { animation: pulse 1.5s infinite; }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-.page-live .pokal { display: block; }
 </style>
 </head>
 <body>
@@ -574,7 +577,7 @@
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
       <div id="phone-role"></div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.54</p>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.55</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -1306,9 +1309,7 @@ function showHoleInOne(name) {
 
 function liveCup(size) {
   if (currentPage !== 'live') return '';
-  const spin = size === 'lg' || liveCupSpin;
-  const auto = spin ? ' data-auto autoplay' : '';
-  return '<div class="pokal pokal-' + size + '" role="img"><video' + auto + ' muted playsinline webkit-playsinline preload="' + (spin ? 'auto' : 'none') + '" src="logo-snurr.mp4" onerror="this.style.display=\'none\'"></video></div>';
+  return '<div class="pokal pokal-' + size + (liveCupSpin ? ' spin' : '') + '" role="img"><img src="logo-mark.png" alt="" /></div>';
 }
 function liveTint(word) {
   for (let i = 0; i < TEAM_LOOK.length; i++) if (TEAM_LOOK[i].word === word) return '<span class="live-tint" style="color:' + TEAM_LOOK[i].color + '">' + liveEsc(word) + '</span>';
@@ -1619,10 +1620,31 @@ function liveArmScene() {
         liveSting = false;
         livePaintKey = '';
         paintLive();
-      }, 2000);
+      }, 5200);
     }
     liveArmScene();
   }, 60000);
+}
+function livePlayIntro() {
+  const old = document.querySelector('.live-intro');
+  if (old) old.remove();
+  const overlay = document.createElement('div');
+  overlay.className = 'live-intro';
+  overlay.innerHTML = '<video autoplay muted playsinline webkit-playsinline src="opening.mp4"></video><button type="button" class="live-intro-skip">Hopp over</button>';
+  document.body.appendChild(overlay);
+  const v = overlay.querySelector('video');
+  let closed = false;
+  function close() {
+    if (closed) return;
+    closed = true;
+    overlay.classList.add('out');
+    setTimeout(function () { if (overlay.parentNode) overlay.remove(); }, 420);
+  }
+  overlay.querySelector('.live-intro-skip').addEventListener('click', close);
+  v.addEventListener('ended', close);
+  v.addEventListener('error', close);
+  const play = v.play();
+  if (play && play.catch) play.catch(function () {});
 }
 function liveArm() {
   liveFresh = true;
@@ -1646,6 +1668,7 @@ function liveArm() {
   liveStoryNext(40000);
   liveArmScene();
   liveWake(true);
+  livePlayIntro();
 }
 function liveStop() {
   liveStopIdle();
@@ -1664,6 +1687,8 @@ function liveStop() {
   liveHoldSeason = null;
   liveShow = null;
   liveQueue = [];
+  const intro = document.querySelector('.live-intro');
+  if (intro) intro.remove();
   liveWake(false);
 }
 function liveWake(on) {
